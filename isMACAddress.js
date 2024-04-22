@@ -1,23 +1,12 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isMACAddress;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import assertString from './util/assertString';
 var macAddress48 = /^(?:[0-9a-fA-F]{2}([-:\s]))([0-9a-fA-F]{2}\1){4}([0-9a-fA-F]{2})$/;
 var macAddress48NoSeparators = /^([0-9a-fA-F]){12}$/;
 var macAddress48WithDots = /^([0-9a-fA-F]{4}\.){2}([0-9a-fA-F]{4})$/;
 var macAddress64 = /^(?:[0-9a-fA-F]{2}([-:\s]))([0-9a-fA-F]{2}\1){6}([0-9a-fA-F]{2})$/;
 var macAddress64NoSeparators = /^([0-9a-fA-F]){16}$/;
 var macAddress64WithDots = /^([0-9a-fA-F]{4}\.){3}([0-9a-fA-F]{4})$/;
-
-function isMACAddress(str, options) {
-  (0, _assertString.default)(str);
+export default function isMACAddress(str, options) {
+  assertString(str);
 
   if (options !== null && options !== void 0 && options.eui) {
     options.eui = String(options.eui);
@@ -53,6 +42,3 @@ function isMACAddress(str, options) {
     eui: '64'
   });
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

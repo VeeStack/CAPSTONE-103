@@ -1,20 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isURL;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-var _isFQDN = _interopRequireDefault(require("./isFQDN"));
-
-var _isIP = _interopRequireDefault(require("./isIP"));
-
-var _merge = _interopRequireDefault(require("./util/merge"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -27,6 +10,10 @@ function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
+import assertString from './util/assertString';
+import isFQDN from './isFQDN';
+import isIP from './isIP';
+import merge from './util/merge';
 /*
 options for isURL method
 
@@ -39,6 +26,7 @@ allow_protocol_relative_urls - if set as true protocol relative URLs will be all
 validate_length - if set as false isURL will skip string length validation (IE maximum is 2083)
 
 */
+
 var default_url_options = {
   protocols: ['http', 'https', 'ftp'],
   require_tld: true,
@@ -71,8 +59,8 @@ function checkHost(host, matches) {
   return false;
 }
 
-function isURL(url, options) {
-  (0, _assertString.default)(url);
+export default function isURL(url, options) {
+  assertString(url);
 
   if (!url || /[\s<>]/.test(url)) {
     return false;
@@ -82,7 +70,7 @@ function isURL(url, options) {
     return false;
   }
 
-  options = (0, _merge.default)(options, default_url_options);
+  options = merge(options, default_url_options);
 
   if (options.validate_length && url.length >= 2083) {
     return false;
@@ -195,7 +183,7 @@ function isURL(url, options) {
     return true;
   }
 
-  if (!(0, _isIP.default)(host) && !(0, _isFQDN.default)(host, options) && (!ipv6 || !(0, _isIP.default)(ipv6, 6))) {
+  if (!isIP(host) && !isFQDN(host, options) && (!ipv6 || !isIP(ipv6, 6))) {
     return false;
   }
 
@@ -207,6 +195,3 @@ function isURL(url, options) {
 
   return true;
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

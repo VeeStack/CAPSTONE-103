@@ -1,20 +1,6 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isEthereumAddress;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import assertString from './util/assertString';
 var eth = /^(0x)[0-9a-f]{40}$/i;
-
-function isEthereumAddress(str) {
-  (0, _assertString.default)(str);
+export default function isEthereumAddress(str) {
+  assertString(str);
   return eth.test(str);
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

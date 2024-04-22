@@ -1,16 +1,6 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isMobilePhone;
-exports.locales = void 0;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import assertString from './util/assertString';
 /* eslint-disable max-len */
+
 var phones = {
   'am-AM': /^(\+?374|0)((10|[9|7][0-9])\d{6}$|[2-4]\d{7}$)/,
   'ar-AE': /^((\+?971)|0)?5[024568]\d{7}$/,
@@ -180,9 +170,8 @@ phones['zh-MO'] = phones['en-MO'];
 phones['ga-IE'] = phones['en-IE'];
 phones['fr-CH'] = phones['de-CH'];
 phones['it-CH'] = phones['fr-CH'];
-
-function isMobilePhone(str, locale, options) {
-  (0, _assertString.default)(str);
+export default function isMobilePhone(str, locale, options) {
+  assertString(str);
 
   if (options && options.strictMode && !str.startsWith('+')) {
     return false;
@@ -221,6 +210,4 @@ function isMobilePhone(str, locale, options) {
 
   throw new Error("Invalid locale '".concat(locale, "'"));
 }
-
-var locales = Object.keys(phones);
-exports.locales = locales;
+export var locales = Object.keys(phones);

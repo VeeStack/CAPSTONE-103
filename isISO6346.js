@@ -1,23 +1,11 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.isISO6346 = isISO6346;
-exports.isFreightContainerID = void 0;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// https://en.wikipedia.org/wiki/ISO_6346
+import assertString from './util/assertString'; // https://en.wikipedia.org/wiki/ISO_6346
 // according to ISO6346 standard, checksum digit is mandatory for freight container but recommended
 // for other container types (J and Z)
+
 var isISO6346Str = /^[A-Z]{3}(U[0-9]{7})|([J,Z][0-9]{6,7})$/;
 var isDigit = /^[0-9]$/;
-
-function isISO6346(str) {
-  (0, _assertString.default)(str);
+export function isISO6346(str) {
+  assertString(str);
   str = str.toUpperCase();
   if (!isISO6346Str.test(str)) return false;
 
@@ -39,6 +27,4 @@ function isISO6346(str) {
 
   return true;
 }
-
-var isFreightContainerID = isISO6346;
-exports.isFreightContainerID = isFreightContainerID;
+export var isFreightContainerID = isISO6346;

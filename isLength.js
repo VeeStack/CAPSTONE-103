@@ -1,19 +1,10 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isLength;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+import assertString from './util/assertString';
 /* eslint-disable prefer-rest-params */
-function isLength(str, options) {
-  (0, _assertString.default)(str);
+
+export default function isLength(str, options) {
+  assertString(str);
   var min;
   var max;
 
@@ -31,6 +22,3 @@ function isLength(str, options) {
   var len = str.length - presentationSequences.length - surrogatePairs.length;
   return len >= min && (typeof max === 'undefined' || len <= max);
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

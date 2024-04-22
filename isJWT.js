@@ -1,18 +1,7 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isJWT;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-var _isBase = _interopRequireDefault(require("./isBase64"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function isJWT(str) {
-  (0, _assertString.default)(str);
+import assertString from './util/assertString';
+import isBase64 from './isBase64';
+export default function isJWT(str) {
+  assertString(str);
   var dotSplit = str.split('.');
   var len = dotSplit.length;
 
@@ -21,11 +10,8 @@ function isJWT(str) {
   }
 
   return dotSplit.reduce(function (acc, currElem) {
-    return acc && (0, _isBase.default)(currElem, {
+    return acc && isBase64(currElem, {
       urlSafe: true
     });
   }, true);
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

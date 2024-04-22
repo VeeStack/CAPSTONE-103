@@ -1,16 +1,5 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isFQDN;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-var _merge = _interopRequireDefault(require("./util/merge"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import assertString from './util/assertString';
+import merge from './util/merge';
 var default_fqdn_options = {
   require_tld: true,
   allow_underscores: false,
@@ -19,10 +8,9 @@ var default_fqdn_options = {
   allow_wildcard: false,
   ignore_max_length: false
 };
-
-function isFQDN(str, options) {
-  (0, _assertString.default)(str);
-  options = (0, _merge.default)(options, default_fqdn_options);
+export default function isFQDN(str, options) {
+  assertString(str);
+  options = merge(options, default_fqdn_options);
   /* Remove the optional trailing dot before checking validity */
 
   if (options.allow_trailing_dot && str[str.length - 1] === '.') {
@@ -85,6 +73,3 @@ function isFQDN(str, options) {
     return true;
   });
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

@@ -1,19 +1,8 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isIdentityCard;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-var _isInt = _interopRequireDefault(require("./isInt"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import assertString from './util/assertString';
+import isInt from './isInt';
 var validators = {
   PL: function PL(str) {
-    (0, _assertString.default)(str);
+    assertString(str);
     var weightOfDigits = {
       1: 1,
       2: 3,
@@ -28,7 +17,7 @@ var validators = {
       11: 0
     };
 
-    if (str != null && str.length === 11 && (0, _isInt.default)(str, {
+    if (str != null && str.length === 11 && isInt(str, {
       allow_leading_zeroes: true
     })) {
       var digits = str.split('').slice(0, -1);
@@ -46,7 +35,7 @@ var validators = {
     return false;
   },
   ES: function ES(str) {
-    (0, _assertString.default)(str);
+    assertString(str);
     var DNI = /^[0-9X-Z][0-9]{7}[TRWAGMYFPDXBNJZSQVHLCKE]$/;
     var charsValue = {
       X: 0,
@@ -62,14 +51,14 @@ var validators = {
     } // validate the control digit
 
 
-    var number = sanitized.slice(0, -1).replace(/[X,Y,Z]/g, function (char) {
-      return charsValue[char];
+    var number = sanitized.slice(0, -1).replace(/[X,Y,Z]/g, function (_char) {
+      return charsValue[_char];
     });
     return sanitized.endsWith(controlDigits[number % 23]);
   },
   FI: function FI(str) {
     // https://dvv.fi/en/personal-identity-code#:~:text=control%20character%20for%20a-,personal,-identity%20code%20calculated
-    (0, _assertString.default)(str);
+    assertString(str);
 
     if (str.length !== 11) {
       return false;
@@ -381,9 +370,8 @@ var validators = {
     }, 0);
   }
 };
-
-function isIdentityCard(str, locale) {
-  (0, _assertString.default)(str);
+export default function isIdentityCard(str, locale) {
+  assertString(str);
 
   if (locale in validators) {
     return validators[locale](str);
@@ -405,6 +393,3 @@ function isIdentityCard(str, locale) {
 
   throw new Error("Invalid locale '".concat(locale, "'"));
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

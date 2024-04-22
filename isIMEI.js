@@ -1,19 +1,8 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isIMEI;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import assertString from './util/assertString';
 var imeiRegexWithoutHypens = /^[0-9]{15}$/;
 var imeiRegexWithHypens = /^\d{2}-\d{6}-\d{6}-\d{1}$/;
-
-function isIMEI(str, options) {
-  (0, _assertString.default)(str);
+export default function isIMEI(str, options) {
+  assertString(str);
   options = options || {}; // default regex for checking imei is the one without hyphens
 
   var imeiRegex = imeiRegexWithoutHypens;
@@ -56,6 +45,3 @@ function isIMEI(str, options) {
 
   return true;
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

@@ -1,20 +1,10 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isIBAN;
-exports.locales = void 0;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import assertString from './util/assertString';
 /**
  * List of country codes with
  * corresponding IBAN regular expression
  * Reference: https://en.wikipedia.org/wiki/International_Bank_Account_Number
  */
+
 var ibanRegexThroughCountryCode = {
   AD: /^(AD[0-9]{2})\d{8}[A-Z0-9]{12}$/,
   AE: /^(AE[0-9]{2})\d{3}\d{16}$/,
@@ -176,8 +166,8 @@ function hasValidIbanChecksum(str) {
   var strippedStr = str.replace(/[^A-Z0-9]+/gi, '').toUpperCase(); // Keep only digits and A-Z latin alphabetic
 
   var rearranged = strippedStr.slice(4) + strippedStr.slice(0, 4);
-  var alphaCapsReplacedWithDigits = rearranged.replace(/[A-Z]/g, function (char) {
-    return char.charCodeAt(0) - 55;
+  var alphaCapsReplacedWithDigits = rearranged.replace(/[A-Z]/g, function (_char) {
+    return _char.charCodeAt(0) - 55;
   });
   var remainder = alphaCapsReplacedWithDigits.match(/\d{1,7}/g).reduce(function (acc, value) {
     return Number(acc + value) % 97;
@@ -185,11 +175,9 @@ function hasValidIbanChecksum(str) {
   return remainder === 1;
 }
 
-function isIBAN(str) {
+export default function isIBAN(str) {
   var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  (0, _assertString.default)(str);
+  assertString(str);
   return hasValidIbanFormat(str, options) && hasValidIbanChecksum(str);
 }
-
-var locales = Object.keys(ibanRegexThroughCountryCode);
-exports.locales = locales;
+export var locales = Object.keys(ibanRegexThroughCountryCode);

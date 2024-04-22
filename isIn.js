@@ -1,20 +1,9 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isIn;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-var _toString = _interopRequireDefault(require("./util/toString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-function isIn(str, options) {
-  (0, _assertString.default)(str);
+import assertString from './util/assertString';
+import toString from './util/toString';
+export default function isIn(str, options) {
+  assertString(str);
   var i;
 
   if (Object.prototype.toString.call(options) === '[object Array]') {
@@ -24,7 +13,7 @@ function isIn(str, options) {
       // https://github.com/gotwarlost/istanbul/blob/master/ignoring-code-for-coverage.md#ignoring-code-for-coverage-purposes
       // istanbul ignore else
       if ({}.hasOwnProperty.call(options, i)) {
-        array[i] = (0, _toString.default)(options[i]);
+        array[i] = toString(options[i]);
       }
     }
 
@@ -37,6 +26,3 @@ function isIn(str, options) {
 
   return false;
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

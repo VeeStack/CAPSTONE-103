@@ -1,23 +1,11 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isIPRange;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-var _isIP = _interopRequireDefault(require("./isIP"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import assertString from './util/assertString';
+import isIP from './isIP';
 var subnetMaybe = /^\d{1,3}$/;
 var v4Subnet = 32;
 var v6Subnet = 128;
-
-function isIPRange(str) {
+export default function isIPRange(str) {
   var version = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-  (0, _assertString.default)(str);
+  assertString(str);
   var parts = str.split('/'); // parts[0] -> ip, parts[1] -> subnet
 
   if (parts.length !== 2) {
@@ -33,7 +21,7 @@ function isIPRange(str) {
     return false;
   }
 
-  var isValidIP = (0, _isIP.default)(parts[0], version);
+  var isValidIP = isIP(parts[0], version);
 
   if (!isValidIP) {
     return false;
@@ -52,11 +40,8 @@ function isIPRange(str) {
       break;
 
     default:
-      expectedSubnet = (0, _isIP.default)(parts[0], '6') ? v6Subnet : v4Subnet;
+      expectedSubnet = isIP(parts[0], '6') ? v6Subnet : v4Subnet;
   }
 
   return parts[1] <= expectedSubnet && parts[1] >= 0;
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

@@ -1,20 +1,11 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isPassportNumber;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import assertString from './util/assertString';
 /**
  * Reference:
  * https://en.wikipedia.org/ -- Wikipedia
  * https://docs.microsoft.com/en-us/microsoft-365/compliance/eu-passport-number -- EU Passport Number
  * https://countrycode.org/ -- Country Codes
  */
+
 var passportRegexByCountryCode = {
   AM: /^[A-Z]{2}\d{7}$/,
   // ARMENIA
@@ -144,13 +135,10 @@ var passportRegexByCountryCode = {
  * @return {boolean}
  */
 
-function isPassportNumber(str, countryCode) {
-  (0, _assertString.default)(str);
+export default function isPassportNumber(str, countryCode) {
+  assertString(str);
   /** Remove All Whitespaces, Convert to UPPERCASE */
 
   var normalizedStr = str.replace(/\s/g, '').toUpperCase();
   return countryCode.toUpperCase() in passportRegexByCountryCode && passportRegexByCountryCode[countryCode].test(normalizedStr);
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

@@ -1,18 +1,9 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isLocale;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import assertString from './util/assertString';
 /*
   = 3ALPHA              ; selected ISO 639 codes
     *2("-" 3ALPHA)      ; permanently reserved
  */
+
 var extlang = '([A-Za-z]{3}(-[A-Za-z]{3}){0,2})';
 /*
   = 2*3ALPHA            ; shortest ISO 639 code
@@ -106,11 +97,7 @@ var langtag = "".concat(language, "(").concat(delimiter).concat(script, ")?(").c
  */
 
 var languageTagRegex = new RegExp("(^".concat(privateuse, "$)|(^").concat(grandfathered, "$)|(^").concat(langtag, "$)"));
-
-function isLocale(str) {
-  (0, _assertString.default)(str);
+export default function isLocale(str) {
+  assertString(str);
   return languageTagRegex.test(str);
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;
