@@ -1,641 +1,309 @@
-semver(1) -- The semantic versioner for npm
-===========================================
+# validator.js
+[![NPM version][npm-image]][npm-url]
+[![CI][ci-image]][ci-url]
+[![Coverage][codecov-image]][codecov-url]
+[![Downloads][downloads-image]][npm-url]
+[![Backers on Open Collective](https://opencollective.com/validatorjs/backers/badge.svg)](#backers)
+[![Sponsors on Open Collective](https://opencollective.com/validatorjs/sponsors/badge.svg)](#sponsors)
+[![Gitter][gitter-image]][gitter-url]
+[![Disclose a vulnerability][huntr-image]][huntr-url]
 
-## Install
+A library of string validators and sanitizers.
 
-```bash
-npm install semver
-````
+## Strings only
 
-## Usage
+**This library validates and sanitizes strings only.**
 
-As a node module:
+If you're not sure if your input is a string, coerce it using `input + ''`.
+Passing anything other than a string will result in an error.
 
-```js
-const semver = require('semver')
+## Installation and Usage
 
-semver.valid('1.2.3') // '1.2.3'
-semver.valid('a.b.c') // null
-semver.clean('  =v1.2.3   ') // '1.2.3'
-semver.satisfies('1.2.3', '1.x || >=2.5.0 || 5.0.0 - 7.2.3') // true
-semver.gt('1.2.3', '9.8.7') // false
-semver.lt('1.2.3', '9.8.7') // true
-semver.minVersion('>=1.0.0') // '1.0.0'
-semver.valid(semver.coerce('v2')) // '2.0.0'
-semver.valid(semver.coerce('42.6.7.9.3-alpha')) // '42.6.7'
-```
+### Server-side usage
 
-You can also just load the module for the function that you care about, if
-you'd like to minimize your footprint.
+Install the library with `npm install validator`
 
-```js
-// load the whole API at once in a single object
-const semver = require('semver')
-
-// or just load the bits you need
-// all of them listed here, just pick and choose what you want
-
-// classes
-const SemVer = require('semver/classes/semver')
-const Comparator = require('semver/classes/comparator')
-const Range = require('semver/classes/range')
-
-// functions for working with versions
-const semverParse = require('semver/functions/parse')
-const semverValid = require('semver/functions/valid')
-const semverClean = require('semver/functions/clean')
-const semverInc = require('semver/functions/inc')
-const semverDiff = require('semver/functions/diff')
-const semverMajor = require('semver/functions/major')
-const semverMinor = require('semver/functions/minor')
-const semverPatch = require('semver/functions/patch')
-const semverPrerelease = require('semver/functions/prerelease')
-const semverCompare = require('semver/functions/compare')
-const semverRcompare = require('semver/functions/rcompare')
-const semverCompareLoose = require('semver/functions/compare-loose')
-const semverCompareBuild = require('semver/functions/compare-build')
-const semverSort = require('semver/functions/sort')
-const semverRsort = require('semver/functions/rsort')
-
-// low-level comparators between versions
-const semverGt = require('semver/functions/gt')
-const semverLt = require('semver/functions/lt')
-const semverEq = require('semver/functions/eq')
-const semverNeq = require('semver/functions/neq')
-const semverGte = require('semver/functions/gte')
-const semverLte = require('semver/functions/lte')
-const semverCmp = require('semver/functions/cmp')
-const semverCoerce = require('semver/functions/coerce')
-
-// working with ranges
-const semverSatisfies = require('semver/functions/satisfies')
-const semverMaxSatisfying = require('semver/ranges/max-satisfying')
-const semverMinSatisfying = require('semver/ranges/min-satisfying')
-const semverToComparators = require('semver/ranges/to-comparators')
-const semverMinVersion = require('semver/ranges/min-version')
-const semverValidRange = require('semver/ranges/valid')
-const semverOutside = require('semver/ranges/outside')
-const semverGtr = require('semver/ranges/gtr')
-const semverLtr = require('semver/ranges/ltr')
-const semverIntersects = require('semver/ranges/intersects')
-const simplifyRange = require('semver/ranges/simplify')
-const rangeSubset = require('semver/ranges/subset')
-```
-
-As a command-line utility:
-
-```
-$ semver -h
-
-A JavaScript implementation of the https://semver.org/ specification
-Copyright Isaac Z. Schlueter
-
-Usage: semver [options] <version> [<version> [...]]
-Prints valid versions sorted by SemVer precedence
-
-Options:
--r --range <range>
-        Print versions that match the specified range.
-
--i --increment [<level>]
-        Increment a version by the specified level.  Level can
-        be one of: major, minor, patch, premajor, preminor,
-        prepatch, or prerelease.  Default level is 'patch'.
-        Only one version may be specified.
-
---preid <identifier>
-        Identifier to be used to prefix premajor, preminor,
-        prepatch or prerelease version increments.
-
--l --loose
-        Interpret versions and ranges loosely
-
--n <0|1>
-        This is the base to be used for the prerelease identifier.
-
--p --include-prerelease
-        Always include prerelease versions in range matching
-
--c --coerce
-        Coerce a string into SemVer if possible
-        (does not imply --loose)
-
---rtl
-        Coerce version strings right to left
-
---ltr
-        Coerce version strings left to right (default)
-
-Program exits successfully if any valid version satisfies
-all supplied ranges, and prints all satisfying versions.
-
-If no satisfying versions are found, then exits failure.
-
-Versions are printed in ascending order, so supplying
-multiple versions to the utility will just sort them.
-```
-
-## Versions
-
-A "version" is described by the `v2.0.0` specification found at
-<https://semver.org/>.
-
-A leading `"="` or `"v"` character is stripped off and ignored.
-
-## Ranges
-
-A `version range` is a set of `comparators` which specify versions
-that satisfy the range.
-
-A `comparator` is composed of an `operator` and a `version`.  The set
-of primitive `operators` is:
-
-* `<` Less than
-* `<=` Less than or equal to
-* `>` Greater than
-* `>=` Greater than or equal to
-* `=` Equal.  If no operator is specified, then equality is assumed,
-  so this operator is optional, but MAY be included.
-
-For example, the comparator `>=1.2.7` would match the versions
-`1.2.7`, `1.2.8`, `2.5.3`, and `1.3.9`, but not the versions `1.2.6`
-or `1.1.0`. The comparator `>1` is equivalent to `>=2.0.0` and
-would match the versions `2.0.0` and `3.1.0`, but not the versions
-`1.0.1` or `1.1.0`.
-
-Comparators can be joined by whitespace to form a `comparator set`,
-which is satisfied by the **intersection** of all of the comparators
-it includes.
-
-A range is composed of one or more comparator sets, joined by `||`.  A
-version matches a range if and only if every comparator in at least
-one of the `||`-separated comparator sets is satisfied by the version.
-
-For example, the range `>=1.2.7 <1.3.0` would match the versions
-`1.2.7`, `1.2.8`, and `1.2.99`, but not the versions `1.2.6`, `1.3.0`,
-or `1.1.0`.
-
-The range `1.2.7 || >=1.2.9 <2.0.0` would match the versions `1.2.7`,
-`1.2.9`, and `1.4.6`, but not the versions `1.2.8` or `2.0.0`.
-
-### Prerelease Tags
-
-If a version has a prerelease tag (for example, `1.2.3-alpha.3`) then
-it will only be allowed to satisfy comparator sets if at least one
-comparator with the same `[major, minor, patch]` tuple also has a
-prerelease tag.
-
-For example, the range `>1.2.3-alpha.3` would be allowed to match the
-version `1.2.3-alpha.7`, but it would *not* be satisfied by
-`3.4.5-alpha.9`, even though `3.4.5-alpha.9` is technically "greater
-than" `1.2.3-alpha.3` according to the SemVer sort rules.  The version
-range only accepts prerelease tags on the `1.2.3` version.  The
-version `3.4.5` *would* satisfy the range, because it does not have a
-prerelease flag, and `3.4.5` is greater than `1.2.3-alpha.7`.
-
-The purpose for this behavior is twofold.  First, prerelease versions
-frequently are updated very quickly, and contain many breaking changes
-that are (by the author's design) not yet fit for public consumption.
-Therefore, by default, they are excluded from range matching
-semantics.
-
-Second, a user who has opted into using a prerelease version has
-clearly indicated the intent to use *that specific* set of
-alpha/beta/rc versions.  By including a prerelease tag in the range,
-the user is indicating that they are aware of the risk.  However, it
-is still not appropriate to assume that they have opted into taking a
-similar risk on the *next* set of prerelease versions.
-
-Note that this behavior can be suppressed (treating all prerelease
-versions as if they were normal versions, for the purpose of range
-matching) by setting the `includePrerelease` flag on the options
-object to any
-[functions](https://github.com/npm/node-semver#functions) that do
-range matching.
-
-#### Prerelease Identifiers
-
-The method `.inc` takes an additional `identifier` string argument that
-will append the value of the string as a prerelease identifier:
+#### No ES6
 
 ```javascript
-semver.inc('1.2.3', 'prerelease', 'beta')
-// '1.2.4-beta.0'
+var validator = require('validator');
+
+validator.isEmail('foo@bar.com'); //=> true
 ```
 
-command-line example:
-
-```bash
-$ semver 1.2.3 -i prerelease --preid beta
-1.2.4-beta.0
-```
-
-Which then can be used to increment further:
-
-```bash
-$ semver 1.2.4-beta.0 -i prerelease
-1.2.4-beta.1
-```
-
-#### Prerelease Identifier Base
-
-The method `.inc` takes an optional parameter 'identifierBase' string
-that will let you let your prerelease number as zero-based or one-based.
-Set to `false` to omit the prerelease number altogether.
-If you do not specify this parameter, it will default to zero-based.
+#### ES6
 
 ```javascript
-semver.inc('1.2.3', 'prerelease', 'beta', '1')
-// '1.2.4-beta.1'
+import validator from 'validator';
 ```
+
+Or, import only a subset of the library:
 
 ```javascript
-semver.inc('1.2.3', 'prerelease', 'beta', false)
-// '1.2.4-beta'
+import isEmail from 'validator/lib/isEmail';
 ```
 
-command-line example:
+#### Tree-shakeable ES imports
+
+```javascript
+import isEmail from 'validator/es/lib/isEmail';
+```
+
+### Client-side usage
+
+The library can be loaded either as a standalone script, or through an [AMD][amd]-compatible loader
+
+```html
+<script type="text/javascript" src="validator.min.js"></script>
+<script type="text/javascript">
+  validator.isEmail('foo@bar.com'); //=> true
+</script>
+```
+
+The library can also be installed through [bower][bower]
 
 ```bash
-$ semver 1.2.3 -i prerelease --preid beta -n 1
-1.2.4-beta.1
+$ bower install validator-js
 ```
 
-```bash
-$ semver 1.2.3 -i prerelease --preid beta -n false
-1.2.4-beta
+CDN
+
+```html
+<script src="https://unpkg.com/validator@latest/validator.min.js"></script>
 ```
 
-### Advanced Range Syntax
+## Contributors
 
-Advanced range syntax desugars to primitive comparators in
-deterministic ways.
+[Become a backer](https://opencollective.com/validatorjs#backer)
 
-Advanced ranges may be combined in the same way as primitive
-comparators using white space or `||`.
+[Become a sponsor](https://opencollective.com/validatorjs#sponsor)
 
-#### Hyphen Ranges `X.Y.Z - A.B.C`
+Thank you to the people who have already contributed:
 
-Specifies an inclusive set.
+<a href="https://github.com/validatorjs/validator.js/graphs/contributors"><img src="https://opencollective.com/validatorjs/contributors.svg?width=890" /></a>
 
-* `1.2.3 - 2.3.4` := `>=1.2.3 <=2.3.4`
+## Validators
 
-If a partial version is provided as the first version in the inclusive
-range, then the missing pieces are replaced with zeroes.
+Here is a list of the validators currently available.
 
-* `1.2 - 2.3.4` := `>=1.2.0 <=2.3.4`
+Validator                               | Description
+--------------------------------------- | --------------------------------------
+**contains(str, seed [, options])**    | check if the string contains the seed.<br/><br/>`options` is an object that defaults to `{ ignoreCase: false, minOccurrences: 1 }`.<br />Options: <br/> `ignoreCase`: Ignore case when doing comparison, default false.<br/>`minOccurences`: Minimum number of occurrences for the seed in the string. Defaults to 1.
+**equals(str, comparison)**             | check if the string matches the comparison.
+**isAfter(str [, options])**            | check if the string is a date that is after the specified date.<br/><br/>`options` is an object that defaults to `{ comparisonDate: Date().toString() }`.<br/>**Options:**<br/>`comparisonDate`: Date to compare to. Defaults to `Date().toString()` (now).
+**isAlpha(str [, locale, options])**    | check if the string contains only letters (a-zA-Z).<br/><br/>`locale` is one of `['ar', 'ar-AE', 'ar-BH', 'ar-DZ', 'ar-EG', 'ar-IQ', 'ar-JO', 'ar-KW', 'ar-LB', 'ar-LY', 'ar-MA', 'ar-QA', 'ar-QM', 'ar-SA', 'ar-SD', 'ar-SY', 'ar-TN', 'ar-YE', 'bg-BG', 'bn', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-AU', 'en-GB', 'en-HK', 'en-IN', 'en-NZ', 'en-US', 'en-ZA', 'en-ZM', 'es-ES', 'fa-IR', 'fi-FI', 'fr-CA', 'fr-FR', 'he', 'hi-IN', 'hu-HU', 'it-IT', 'kk-KZ', 'ko-KR', 'ja-JP', 'ku-IQ', 'nb-NO', 'nl-NL', 'nn-NO', 'pl-PL', 'pt-BR', 'pt-PT', 'ru-RU', 'si-LK', 'sl-SI', 'sk-SK', 'sr-RS', 'sr-RS@latin', 'sv-SE', 'th-TH', 'tr-TR', 'uk-UA']` and defaults to `en-US`. Locale list is `validator.isAlphaLocales`. `options` is an optional object that can be supplied with the following key(s): `ignore` which can either be a String or RegExp of characters to be ignored e.g. " -" will ignore spaces and -'s.
+**isAlphanumeric(str [, locale, options])**      | check if the string contains only letters and numbers (a-zA-Z0-9).<br/><br/>`locale` is one of `['ar', 'ar-AE', 'ar-BH', 'ar-DZ', 'ar-EG', 'ar-IQ', 'ar-JO', 'ar-KW', 'ar-LB', 'ar-LY', 'ar-MA', 'ar-QA', 'ar-QM', 'ar-SA', 'ar-SD', 'ar-SY', 'ar-TN', 'ar-YE', 'bn', 'bg-BG', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-AU', 'en-GB', 'en-HK', 'en-IN', 'en-NZ', 'en-US', 'en-ZA', 'en-ZM', 'es-ES', 'fa-IR', 'fi-FI', 'fr-CA', 'fr-FR', 'he', 'hi-IN', 'hu-HU', 'it-IT', 'kk-KZ', 'ko-KR', 'ja-JP','ku-IQ', 'nb-NO', 'nl-NL', 'nn-NO', 'pl-PL', 'pt-BR', 'pt-PT', 'ru-RU', 'si-LK', 'sl-SI', 'sk-SK', 'sr-RS', 'sr-RS@latin', 'sv-SE', 'th-TH', 'tr-TR', 'uk-UA']`) and defaults to `en-US`. Locale list is `validator.isAlphanumericLocales`. `options` is an optional object that can be supplied with the following key(s): `ignore` which can either be a String or RegExp of characters to be ignored e.g. " -" will ignore spaces and -'s.
+**isAscii(str)**                        | check if the string contains ASCII chars only.
+**isBase32(str [, options])**           | check if the string is base32 encoded. `options` is optional and defaults to `{ crockford: false }`.<br/> When `crockford` is true it tests the given base32 encoded string using [Crockford's base32 alternative][Crockford Base32].
+**isBase58(str)**                       | check if the string is base58 encoded.
+**isBase64(str [, options])**          | check if the string is base64 encoded. `options` is optional and defaults to `{ urlSafe: false }`<br/> when `urlSafe` is true it tests the given base64 encoded string is [url safe][Base64 URL Safe].
+**isBefore(str [, date])**              | check if the string is a date that is before the specified date.
+**isBIC(str)**                          | check if the string is a BIC (Bank Identification Code) or SWIFT code.
+**isBoolean(str [, options])**          | check if the string is a boolean.<br/>`options` is an object which defaults to `{ loose: false }`. If `loose` is is set to false, the validator will strictly match ['true', 'false', '0', '1']. If `loose` is set to true, the validator will also match 'yes', 'no', and will match a valid boolean string of any case. (e.g.: ['true', 'True', 'TRUE']).
+**isBtcAddress(str)**            | check if the string is a valid BTC address.
+**isByteLength(str [, options])**          | check if the string's length (in UTF-8 bytes) falls in a range.<br/><br/>`options` is an object which defaults to `{ min: 0, max: undefined }`.
+**isCreditCard(str [, options])**                   | check if the string is a credit card number.<br/><br/> `options` is an optional object that can be supplied with the following key(s): `provider` is an optional key whose value should be a string, and defines the company issuing the credit card. Valid values include `['amex', 'dinersclub', 'discover', 'jcb', 'mastercard', 'unionpay', 'visa']` or blank will check for any provider. 
+**isCurrency(str [, options])**            | check if the string is a valid currency amount.<br/><br/>`options` is an object which defaults to `{ symbol: '$', require_symbol: false, allow_space_after_symbol: false, symbol_after_digits: false, allow_negatives: true, parens_for_negatives: false, negative_sign_before_digits: false, negative_sign_after_digits: false, allow_negative_sign_placeholder: false, thousands_separator: ',', decimal_separator: '.', allow_decimal: true, require_decimal: false, digits_after_decimal: [2], allow_space_after_digits: false }`.<br/>**Note:** The array `digits_after_decimal` is filled with the exact number of digits allowed not a range, for example a range 1 to 3 will be given as [1, 2, 3].
+**isDataURI(str)**                      | check if the string is a [data uri format][Data URI Format].
+**isDate(str [, options])**          | check if the string is a valid date. e.g. [`2002-07-15`, new Date()].<br/><br/> `options` is an object which can contain the keys `format`, `strictMode` and/or `delimiters`.<br/><br/>`format` is a string and defaults to `YYYY/MM/DD`.<br/><br/>`strictMode` is a boolean and defaults to `false`. If `strictMode` is set to true, the validator will reject strings different from `format`.<br/><br/> `delimiters` is an array of allowed date delimiters and defaults to `['/', '-']`.
+**isDecimal(str [, options])**             | check if the string represents a decimal number, such as 0.1, .3, 1.1, 1.00003, 4.0, etc.<br/><br/>`options` is an object which defaults to `{force_decimal: false, decimal_digits: '1,', locale: 'en-US'}`.<br/><br/>`locale` determines the decimal separator and is one of `['ar', 'ar-AE', 'ar-BH', 'ar-DZ', 'ar-EG', 'ar-IQ', 'ar-JO', 'ar-KW', 'ar-LB', 'ar-LY', 'ar-MA', 'ar-QA', 'ar-QM', 'ar-SA', 'ar-SD', 'ar-SY', 'ar-TN', 'ar-YE', 'bg-BG', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-AU', 'en-GB', 'en-HK', 'en-IN', 'en-NZ', 'en-US', 'en-ZA', 'en-ZM', 'es-ES', 'fa', 'fa-AF', 'fa-IR', 'fr-FR', 'fr-CA', 'hu-HU', 'id-ID', 'it-IT', 'ku-IQ', 'nb-NO', 'nl-NL', 'nn-NO', 'pl-PL', 'pl-Pl', 'pt-BR', 'pt-PT', 'ru-RU', 'sl-SI', 'sr-RS', 'sr-RS@latin', 'sv-SE', 'tr-TR', 'uk-UA', 'vi-VN']`.<br/>**Note:** `decimal_digits` is given as a range like '1,3', a specific value like '3' or min like '1,'.
+**isDivisibleBy(str, number)**          | check if the string is a number that is divisible by another.
+**isEAN(str)**                          | check if the string is an [EAN (European Article Number)][European Article Number].
+**isEmail(str [, options])**            | check if the string is an email.<br/><br/>`options` is an object which defaults to `{ allow_display_name: false, require_display_name: false, allow_utf8_local_part: true, require_tld: true, allow_ip_domain: false, allow_underscores: false, domain_specific_validation: false, blacklisted_chars: '', host_blacklist: [] }`. If `allow_display_name` is set to true, the validator will also match `Display Name <email-address>`. If `require_display_name` is set to true, the validator will reject strings without the format `Display Name <email-address>`. If `allow_utf8_local_part` is set to false, the validator will not allow any non-English UTF8 character in email address' local part. If `require_tld` is set to false, email addresses without a TLD in their domain will also be matched. If `ignore_max_length` is set to true, the validator will not check for the standard max length of an email. If `allow_ip_domain` is set to true, the validator will allow IP addresses in the host part. If `domain_specific_validation` is true, some additional validation will be enabled, e.g. disallowing certain syntactically valid email addresses that are rejected by Gmail. If `blacklisted_chars` receives a string, then the validator will reject emails that include any of the characters in the string, in the name part. If `host_blacklist` is set to an array of strings and the part of the email after the `@` symbol matches one of the strings defined in it, the validation fails. If `host_whitelist` is set to an array of strings and the part of the email after the `@` symbol matches none of the strings defined in it, the validation fails.
+**isEmpty(str [, options])**            | check if the string has a length of zero.<br/><br/>`options` is an object which defaults to `{ ignore_whitespace: false }`.
+**isEthereumAddress(str)**              | check if the string is an [Ethereum][Ethereum] address. Does not validate address checksums.
+**isFloat(str [, options])**            | check if the string is a float.<br/><br/>`options` is an object which can contain the keys `min`, `max`, `gt`, and/or `lt` to validate the float is within boundaries (e.g. `{ min: 7.22, max: 9.55 }`) it also has `locale` as an option.<br/><br/>`min` and `max` are equivalent to 'greater or equal' and 'less or equal', respectively while `gt` and `lt` are their strict counterparts.<br/><br/>`locale` determines the decimal separator and is one of `['ar', 'ar-AE', 'ar-BH', 'ar-DZ', 'ar-EG', 'ar-IQ', 'ar-JO', 'ar-KW', 'ar-LB', 'ar-LY', 'ar-MA', 'ar-QA', 'ar-QM', 'ar-SA', 'ar-SD', 'ar-SY', 'ar-TN', 'ar-YE', 'bg-BG', 'cs-CZ', 'da-DK', 'de-DE', 'en-AU', 'en-GB', 'en-HK', 'en-IN', 'en-NZ', 'en-US', 'en-ZA', 'en-ZM', 'es-ES', 'fr-CA', 'fr-FR', 'hu-HU', 'it-IT', 'nb-NO', 'nl-NL', 'nn-NO', 'pl-PL', 'pt-BR', 'pt-PT', 'ru-RU', 'sl-SI', 'sr-RS', 'sr-RS@latin', 'sv-SE', 'tr-TR', 'uk-UA']`. Locale list is `validator.isFloatLocales`.
+**isFQDN(str [, options])**             | check if the string is a fully qualified domain name (e.g. domain.com).<br/><br/>`options` is an object which defaults to `{ require_tld: true, allow_underscores: false, allow_trailing_dot: false, allow_numeric_tld: false, allow_wildcard: false, ignore_max_length: false }`. If `allow_wildcard` is set to true, the validator will allow domain starting with `*.` (e.g. `*.example.com` or `*.shop.example.com`).
+**isFreightContainerID(str)**                      | alias for `isISO6346`, check if the string is a valid [ISO 6346](https://en.wikipedia.org/wiki/ISO_6346) shipping container identification.
+**isFullWidth(str)**                    | check if the string contains any full-width chars.
+**isHalfWidth(str)**                    | check if the string contains any half-width chars.
+**isHash(str, algorithm)**              | check if the string is a hash of type algorithm.<br/><br/>Algorithm is one of `['crc32', 'crc32b', 'md4', 'md5', 'ripemd128', 'ripemd160', 'sha1', 'sha256', 'sha384', 'sha512', 'tiger128', 'tiger160', 'tiger192']`.
+**isHexadecimal(str)**                  | check if the string is a hexadecimal number.
+**isHexColor(str)**                     | check if the string is a hexadecimal color.
+**isHSL(str)**                          | check if the string is an HSL (hue, saturation, lightness, optional alpha) color based on [CSS Colors Level 4 specification][CSS Colors Level 4 Specification].<br/><br/>Comma-separated format supported. Space-separated format supported with the exception of a few edge cases (ex: `hsl(200grad+.1%62%/1)`).
+**isIBAN(str, [, options])**                  | check if the string is an IBAN (International Bank Account Number).<br/><br/>`options` is an object which accepts two attributes: `whitelist`: where you can restrict IBAN codes you want to receive data from and `blacklist`: where you can remove some of the countries from the current list. For both you can use an array with the following values `['AD','AE','AL','AT','AZ','BA','BE','BG','BH','BR','BY','CH','CR','CY','CZ','DE','DK','DO','EE','EG','ES','FI','FO','FR','GB','GE','GI','GL','GR','GT','HR','HU','IE','IL','IQ','IR','IS','IT','JO','KW','KZ','LB','LC','LI','LT','LU','LV','MC','MD','ME','MK','MR','MT','MU','MZ','NL','NO','PK','PL','PS','PT','QA','RO','RS','SA','SC','SE','SI','SK','SM','SV','TL','TN','TR','UA','VA','VG','XK']`.
+**isIdentityCard(str [, locale])**      | check if the string is a valid identity card code.<br/><br/>`locale` is one of `['LK', 'PL', 'ES', 'FI', 'IN', 'IT', 'IR', 'MZ', 'NO', 'TH', 'zh-TW', 'he-IL', 'ar-LY', 'ar-TN', 'zh-CN', 'zh-HK']` OR `'any'`. If 'any' is used, function will check if any of the locales match.<br/><br/>Defaults to 'any'.
+**isIMEI(str [, options]))**                         | check if the string is a valid [IMEI number][IMEI]. IMEI should be of format `###############` or `##-######-######-#`.<br/><br/>`options` is an object which can contain the keys `allow_hyphens`. Defaults to first format. If `allow_hyphens` is set to true, the validator will validate the second format.
+**isIn(str, values)**                   | check if the string is in an array of allowed values.
+**isInt(str [, options])**              | check if the string is an integer.<br/><br/>`options` is an object which can contain the keys `min` and/or `max` to check the integer is within boundaries (e.g. `{ min: 10, max: 99 }`). `options` can also contain the key `allow_leading_zeroes`, which when set to false will disallow integer values with leading zeroes (e.g. `{ allow_leading_zeroes: false }`). Finally, `options` can contain the keys `gt` and/or `lt` which will enforce integers being greater than or less than, respectively, the value provided (e.g. `{gt: 1, lt: 4}` for a number between 1 and 4).
+**isIP(str [, version])**               | check if the string is an IP (version 4 or 6).
+**isIPRange(str [, version])**          | check if the string is an IP Range (version 4 or 6).
+**isISBN(str [, options])**             | check if the string is an [ISBN][ISBN].<br/><br/>`options` is an object that has no default.<br/>**Options:**<br/>`version`: ISBN version to compare to. Accepted values are '10' and '13'. If none provided, both will be tested.
+**isISIN(str)**                         | check if the string is an [ISIN][ISIN] (stock/security identifier).
+**isISO6346(str)**                      | check if the string is a valid [ISO 6346](https://en.wikipedia.org/wiki/ISO_6346) shipping container identification.
+**isISO6391(str)**                      | check if the string is a valid [ISO 639-1][ISO 639-1] language code.
+**isISO8601(str [, options])**          | check if the string is a valid [ISO 8601][ISO 8601] date. <br/>`options` is an object which defaults to `{ strict: false, strictSeparator: false }`. If `strict` is true, date strings with invalid dates like `2009-02-29` will be invalid. If `strictSeparator` is true, date strings with date and time separated by anything other than a T will be invalid.
+**isISO31661Alpha2(str)**               | check if the string is a valid [ISO 3166-1 alpha-2][ISO 3166-1 alpha-2] officially assigned country code.
+**isISO31661Alpha3(str)**               | check if the string is a valid [ISO 3166-1 alpha-3][ISO 3166-1 alpha-3] officially assigned country code.
+**isISO4217(str)**                      | check if the string is a valid [ISO 4217][ISO 4217] officially assigned currency code.
+**isISRC(str)**                         | check if the string is an [ISRC][ISRC].
+**isISSN(str [, options])**             | check if the string is an [ISSN][ISSN].<br/><br/>`options` is an object which defaults to `{ case_sensitive: false, require_hyphen: false }`. If `case_sensitive` is true, ISSNs with a lowercase `'x'` as the check digit are rejected.
+**isJSON(str [, options])**             | check if the string is valid JSON (note: uses JSON.parse).<br/><br/>`options` is an object which defaults to `{ allow_primitives: false }`. If `allow_primitives` is true, the primitives 'true', 'false' and 'null' are accepted as valid JSON values.
+**isJWT(str)**                         | check if the string is valid JWT token.
+**isLatLong(str [, options])**                      | check if the string is a valid latitude-longitude coordinate in the format `lat,long` or `lat, long`.<br/><br/>`options` is an object that defaults to `{ checkDMS: false }`. Pass `checkDMS` as `true` to validate DMS(degrees, minutes, and seconds) latitude-longitude format.
+**isLength(str [, options])**              | check if the string's length falls in a range.<br/><br/>`options` is an object which defaults to `{ min: 0, max: undefined }`. Note: this function takes into account surrogate pairs.
+**isLicensePlate(str, locale)**     | check if the string matches the format of a country's license plate.<br/><br/>`locale` is one of `['cs-CZ', 'de-DE', 'de-LI', 'en-IN', 'es-AR', 'hu-HU', 'pt-BR', 'pt-PT', 'sq-AL', 'sv-SE']` or `'any'`.
+**isLocale(str)**                       | check if the string is a locale.
+**isLowercase(str)**                    | check if the string is lowercase.
+**isLuhnNumber(str)**                    | check if the string passes the [Luhn algorithm check](https://en.wikipedia.org/wiki/Luhn_algorithm).
+**isMACAddress(str [, options])**                   | check if the string is a MAC address.<br/><br/>`options` is an object which defaults to `{ no_separators: false }`. If `no_separators` is true, the validator will allow MAC addresses without separators. Also, it allows the use of hyphens, spaces or dots e.g. '01 02 03 04 05 ab', '01-02-03-04-05-ab' or '0102.0304.05ab'. The options also allow a `eui` property to specify if it needs to be validated against EUI-48 or EUI-64. The accepted values of `eui` are: 48, 64.
+**isMagnetURI(str)**                      | check if the string is a [Magnet URI format][Magnet URI Format].
+**isMailtoURI(str, [, options])**                      | check if the string is a [Magnet URI format][Mailto URI Format].<br/><br/>`options` is an object of validating emails inside the URI (check `isEmail`s options for details).
+**isMD5(str)**                          | check if the string is a MD5 hash.<br/><br/>Please note that you can also use the `isHash(str, 'md5')` function. Keep in mind that MD5 has some collision weaknesses compared to other algorithms (e.g., SHA).
+**isMimeType(str)**                     | check if the string matches to a valid [MIME type][MIME Type] format.
+**isMobilePhone(str [, locale [, options]])**          | check if the string is a mobile phone number,<br/><br/>`locale` is either an array of locales (e.g. `['sk-SK', 'sr-RS']`) OR one of `['am-Am', 'ar-AE', 'ar-BH', 'ar-DZ', 'ar-EG', 'ar-EH', 'ar-IQ', 'ar-JO', 'ar-KW', 'ar-PS', 'ar-SA', 'ar-SD', 'ar-SY', 'ar-TN', 'ar-YE', 'az-AZ', 'az-LB', 'az-LY', 'be-BY', 'bg-BG', 'bn-BD', 'bs-BA', 'ca-AD', 'cs-CZ', 'da-DK', 'de-AT', 'de-CH', 'de-DE', 'de-LU', 'dv-MV', 'dz-BT', 'el-CY', 'el-GR', 'en-AG', 'en-AI', 'en-AU', 'en-BM', 'en-BS', 'en-BW', 'en-CA', 'en-GB', 'en-GG', 'en-GH', 'en-GY', 'en-HK', 'en-IE', 'en-IN', 'en-JM', 'en-KE', 'en-KI', 'en-KN', 'en-LS', 'en-MO', 'en-MT', 'en-MU', 'en-NG', 'en-NZ', 'en-PG', 'en-PH', 'en-PK', 'en-RW', 'en-SG', 'en-SL', 'en-SS', 'en-TZ', 'en-UG', 'en-US', 'en-ZA', 'en-ZM', 'en-ZW', 'es-AR', 'es-BO', 'es-CL', 'es-CO', 'es-CR', 'es-CU', 'es-DO', 'es-EC', 'es-ES', 'es-HN', 'es-MX', 'es-NI', 'es-PA', 'es-PE', 'es-PY', 'es-SV', 'es-UY', 'es-VE', 'et-EE', 'fa-AF', 'fa-IR', 'fi-FI', 'fj-FJ', 'fo-FO', 'fr-BE', 'fr-BF', 'fr-BJ', 'fr-CD', 'fr-CF', 'fr-FR', 'fr-GF', 'fr-GP', 'fr-MQ', 'fr-PF', 'fr-RE', 'fr-WF', 'ga-IE', 'he-IL', 'hu-HU', 'id-ID', 'ir-IR', 'it-IT', 'it-SM', 'ja-JP', 'ka-GE', 'kk-KZ', 'kl-GL', 'ko-KR', 'ky-KG', 'lt-LT', 'mg-MG', 'mn-MN', 'ms-MY', 'my-MM', 'mz-MZ', 'nb-NO', 'ne-NP', 'nl-AW', 'nl-BE', 'nl-NL', 'nn-NO', 'pl-PL', 'pt-AO', 'pt-BR', 'pt-PT', 'ro-Md', 'ro-RO', 'ru-RU', 'si-LK', 'sk-SK', 'sl-SI', 'so-SO', 'sq-AL', 'sr-RS', 'sv-SE', 'tg-TJ', 'th-TH', 'tk-TM', 'tr-TR', 'uk-UA', 'uz-UZ', 'vi-VN', 'zh-CN', 'zh-HK', 'zh-MO', 'zh-TW']` OR defaults to `'any'`. If 'any' or a falsey value is used, function will check if any of the locales match).<br/><br/>`options` is an optional object that can be supplied with the following keys: `strictMode`, if this is set to `true`, the mobile phone number must be supplied with the country code and therefore must start with `+`. Locale list is `validator.isMobilePhoneLocales`.
+**isMongoId(str)**                      | check if the string is a valid hex-encoded representation of a [MongoDB ObjectId][mongoid].
+**isMultibyte(str)**                    | check if the string contains one or more multibyte chars.
+**isNumeric(str [, options])**                      | check if the string contains only numbers.<br/><br/>`options` is an object which defaults to `{ no_symbols: false }` it also has `locale` as an option. If `no_symbols` is true, the validator will reject numeric strings that feature a symbol (e.g. `+`, `-`, or `.`).<br/><br/>`locale` determines the decimal separator and is one of `['ar', 'ar-AE', 'ar-BH', 'ar-DZ', 'ar-EG', 'ar-IQ', 'ar-JO', 'ar-KW', 'ar-LB', 'ar-LY', 'ar-MA', 'ar-QA', 'ar-QM', 'ar-SA', 'ar-SD', 'ar-SY', 'ar-TN', 'ar-YE', 'bg-BG', 'cs-CZ', 'da-DK', 'de-DE', 'en-AU', 'en-GB', 'en-HK', 'en-IN', 'en-NZ', 'en-US', 'en-ZA', 'en-ZM', 'es-ES', 'fr-FR', 'fr-CA', 'hu-HU', 'it-IT', 'nb-NO', 'nl-NL', 'nn-NO', 'pl-PL', 'pt-BR', 'pt-PT', 'ru-RU', 'sl-SI', 'sr-RS', 'sr-RS@latin', 'sv-SE', 'tr-TR', 'uk-UA']`.
+**isOctal(str)**                        | check if the string is a valid octal number.
+**isPassportNumber(str, countryCode)**    | check if the string is a valid passport number.<br/><br/>`countryCode` is one of `['AM', 'AR', 'AT', 'AU', 'AZ', 'BE', 'BG', 'BY', 'BR', 'CA', 'CH', 'CN', 'CY', 'CZ', 'DE', 'DK', 'DZ', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IN', 'IR', 'ID', 'IS', 'IT', 'JM', 'JP', 'KR', 'KZ', 'LI', 'LT', 'LU', 'LV', 'LY', 'MT', 'MX', 'MY', 'MZ', 'NL', 'NZ', 'PH', 'PK', 'PL', 'PT', 'RO', 'RU', 'SE', 'SL', 'SK', 'TH', 'TR', 'UA', 'US']`.
+**isPort(str)**                         | check if the string is a valid port number.
+**isPostalCode(str, locale)**           | check if the string is a postal code.<br/><br/>`locale` is one of `['AD', 'AT', 'AU', 'AZ', 'BA', 'BE', 'BG', 'BR', 'BY', 'CA', 'CH', 'CN', 'CZ', 'DE', 'DK', 'DO', 'DZ', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HT', 'HU', 'ID', 'IE', 'IL', 'IN', 'IR', 'IS', 'IT', 'JP', 'KE', 'KR', 'LI', 'LK', 'LT', 'LU', 'LV', 'MG', 'MT', 'MX', 'MY', 'NL', 'NO', 'NP', 'NZ', 'PL', 'PR', 'PT', 'RO', 'RU', 'SA', 'SE', 'SG', 'SI', 'SK', 'TH', 'TN', 'TW', 'UA', 'US', 'ZA', 'ZM']` OR `'any'`. If 'any' is used, function will check if any of the locales match. Locale list is `validator.isPostalCodeLocales`.
+**isRFC3339(str)**                      | check if the string is a valid [RFC 3339][RFC 3339] date.
+**isRgbColor(str [, includePercentValues])**                     | check if the string is a rgb or rgba color.<br/><br/>`includePercentValues` defaults to `true`. If you don't want to allow to set `rgb` or `rgba` values with percents, like `rgb(5%,5%,5%)`, or `rgba(90%,90%,90%,.3)`, then set it to false.
+**isSemVer(str)**                       | check if the string is a Semantic Versioning Specification (SemVer).
+**isSurrogatePair(str)**                | check if the string contains any surrogate pairs chars.
+**isUppercase(str)**                    | check if the string is uppercase.
+**isSlug(str)**                         | check if the string is of type slug.
+**isStrongPassword(str [, options])**   | check if the string can be considered a strong password or not. Allows for custom requirements or scoring rules. If `returnScore` is true, then the function returns an integer score for the password rather than a boolean.<br/>Default options: <br/>`{ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1, returnScore: false, pointsPerUnique: 1, pointsPerRepeat: 0.5, pointsForContainingLower: 10, pointsForContainingUpper: 10, pointsForContainingNumber: 10, pointsForContainingSymbol: 10 }`
+**isTime(str [, options])**             | check if the string is a valid time e.g. [`23:01:59`, new Date().toLocaleTimeString()].<br/><br/> `options` is an object which can contain the keys `hourFormat` or `mode`.<br/><br/>`hourFormat` is a key and defaults to `'hour24'`.<br/><br/>`mode` is a key and defaults to `'default'`. <br/><br/>`hourFomat` can contain the values `'hour12'` or `'hour24'`, `'hour24'` will validate hours in 24 format and `'hour12'` will validate hours in 12 format. <br/><br/>`mode` can contain the values `'default'` or `'withSeconds'`, `'default'` will validate `HH:MM` format, `'withSeconds'` will validate the `HH:MM:SS` format.
+**isTaxID(str, locale)**                | check if the string is a valid Tax Identification Number. Default locale is `en-US`.<br/><br/>More info about exact TIN support can be found in `src/lib/isTaxID.js`.<br/><br/>Supported locales: `[ 'bg-BG', 'cs-CZ', 'de-AT', 'de-DE', 'dk-DK', 'el-CY', 'el-GR', 'en-CA', 'en-GB', 'en-IE', 'en-US', 'es-ES', 'et-EE', 'fi-FI', 'fr-BE', 'fr-CA', 'fr-FR', 'fr-LU', 'hr-HR', 'hu-HU', 'it-IT', 'lb-LU', 'lt-LT', 'lv-LV', 'mt-MT', 'nl-BE', 'nl-NL', 'pl-PL', 'pt-BR', 'pt-PT', 'ro-RO', 'sk-SK', 'sl-SI', 'sv-SE' ]`.
+**isURL(str [, options])**              | check if the string is a URL.<br/><br/>`options` is an object which defaults to `{ protocols: ['http','https','ftp'], require_tld: true, require_protocol: false, require_host: true, require_port: false, require_valid_protocol: true, allow_underscores: false, host_whitelist: false, host_blacklist: false, allow_trailing_dot: false, allow_protocol_relative_urls: false, allow_fragments: true, allow_query_components: true, disallow_auth: false, validate_length: true }`.<br/><br/>`require_protocol` - if set to true isURL will return false if protocol is not present in the URL.<br/>`require_valid_protocol` - isURL will check if the URL's protocol is present in the protocols option.<br/>`protocols` - valid protocols can be modified with this option.<br/>`require_host` - if set to false isURL will not check if host is present in the URL.<br/>`require_port` - if set to true isURL will check if port is present in the URL.<br/>`allow_protocol_relative_urls` - if set to true protocol relative URLs will be allowed.<br/>`allow_fragments` - if set to false isURL will return false if fragments are present.<br/>`allow_query_components` - if set to false isURL will return false if query components are present.<br/>`validate_length` - if set to false isURL will skip string length validation (2083 characters is IE max URL length).
+**isUUID(str [, version])**             | check if the string is a UUID (version 1, 2, 3, 4 or 5).
+**isVariableWidth(str)**                | check if the string contains a mixture of full and half-width chars.
+**isVAT(str, countryCode)**             | check if the string is a [valid VAT number][VAT Number] if validation is available for the given country code matching [ISO 3166-1 alpha-2][ISO 3166-1 alpha-2]. <br/><br/>`countryCode` is one of `['AL', 'AR', 'AT', 'AU', 'BE', 'BG', 'BO', 'BR', 'BY', 'CA', 'CH', 'CL', 'CO', 'CR', 'CY', 'CZ', 'DE', 'DK', 'DO', 'EC', 'EE', 'EL', 'ES', 'FI', 'FR', 'GB', 'GT', 'HN', 'HR', 'HU', 'ID', 'IE', 'IL', 'IN', 'IS', 'IT', 'KZ', 'LT', 'LU', 'LV', 'MK', 'MT', 'MX', 'NG', 'NI', 'NL', 'NO', 'NZ', 'PA', 'PE', 'PH', 'PL', 'PT', 'PY', 'RO', 'RS', 'RU', 'SA', 'SE', 'SI', 'SK', 'SM', 'SV', 'TR', 'UA', 'UY', 'UZ', 'VE']`.
+**isWhitelisted(str, chars)**           | check if the string consists only of characters that appear in the whitelist `chars`.
+**matches(str, pattern [, modifiers])** | check if the string matches the pattern.<br/><br/>Either `matches('foo', /foo/i)` or `matches('foo', 'foo', 'i')`.
 
-If a partial version is provided as the second version in the
-inclusive range, then all versions that start with the supplied parts
-of the tuple are accepted, but nothing that would be greater than the
-provided tuple parts.
+## Sanitizers
 
-* `1.2.3 - 2.3` := `>=1.2.3 <2.4.0-0`
-* `1.2.3 - 2` := `>=1.2.3 <3.0.0-0`
+Here is a list of the sanitizers currently available.
 
-#### X-Ranges `1.2.x` `1.X` `1.2.*` `*`
+Sanitizer                              | Description
+-------------------------------------- | -------------------------------
+**blacklist(input, chars)**            | remove characters that appear in the blacklist. The characters are used in a RegExp and so you will need to escape some chars, e.g. `blacklist(input, '\\[\\]')`.
+**escape(input)**                      | replace `<`, `>`, `&`, `'`, `"` and `/` with HTML entities.
+**ltrim(input [, chars])**             | trim characters from the left-side of the input.
+**normalizeEmail(email [, options])**  | canonicalize an email address. (This doesn't validate that the input is an email, if you want to validate the email use isEmail beforehand).<br/><br/>`options` is an object with the following keys and default values:<br/><ul><li>*all_lowercase: true* - Transforms the local part (before the @ symbol) of all email addresses to lowercase. Please note that this may violate RFC 5321, which gives providers the possibility to treat the local part of email addresses in a case sensitive way (although in practice most - yet not all - providers don't). The domain part of the email address is always lowercased, as it is case insensitive per RFC 1035.</li><li>*gmail_lowercase: true* - Gmail addresses are known to be case-insensitive, so this switch allows lowercasing them even when *all_lowercase* is set to false. Please note that when *all_lowercase* is true, Gmail addresses are lowercased regardless of the value of this setting.</li><li>*gmail_remove_dots: true*: Removes dots from the local part of the email address, as Gmail ignores them (e.g. "john.doe" and "johndoe" are considered equal).</li><li>*gmail_remove_subaddress: true*: Normalizes addresses by removing "sub-addresses", which is the part following a "+" sign (e.g. "foo+bar@gmail.com" becomes "foo@gmail.com").</li><li>*gmail_convert_googlemaildotcom: true*: Converts addresses with domain @googlemail.com to @gmail.com, as they're equivalent.</li><li>*outlookdotcom_lowercase: true* - Outlook.com addresses (including Windows Live and Hotmail) are known to be case-insensitive, so this switch allows lowercasing them even when *all_lowercase* is set to false. Please note that when *all_lowercase* is true, Outlook.com addresses are lowercased regardless of the value of this setting.</li><li>*outlookdotcom_remove_subaddress: true*: Normalizes addresses by removing "sub-addresses", which is the part following a "+" sign (e.g. "foo+bar@outlook.com" becomes "foo@outlook.com").</li><li>*yahoo_lowercase: true* - Yahoo Mail addresses are known to be case-insensitive, so this switch allows lowercasing them even when *all_lowercase* is set to false. Please note that when *all_lowercase* is true, Yahoo Mail addresses are lowercased regardless of the value of this setting.</li><li>*yahoo_remove_subaddress: true*: Normalizes addresses by removing "sub-addresses", which is the part following a "-" sign (e.g. "foo-bar@yahoo.com" becomes "foo@yahoo.com").</li><li>*icloud_lowercase: true* - iCloud addresses (including MobileMe) are known to be case-insensitive, so this switch allows lowercasing them even when *all_lowercase* is set to false. Please note that when *all_lowercase* is true, iCloud addresses are lowercased regardless of the value of this setting.</li><li>*icloud_remove_subaddress: true*: Normalizes addresses by removing "sub-addresses", which is the part following a "+" sign (e.g. "foo+bar@icloud.com" becomes "foo@icloud.com").</li></ul>
+**rtrim(input [, chars])**             | trim characters from the right-side of the input.
+**stripLow(input [, keep_new_lines])** | remove characters with a numerical value < 32 and 127, mostly control characters. If `keep_new_lines` is `true`, newline characters are preserved (`\n` and `\r`, hex `0xA` and `0xD`). Unicode-safe in JavaScript.
+**toBoolean(input [, strict])**        | convert the input string to a boolean. Everything except for `'0'`, `'false'` and `''` returns `true`. In strict mode only `'1'` and `'true'` return `true`.
+**toDate(input)**                      | convert the input string to a date, or `null` if the input is not a date.
+**toFloat(input)**                     | convert the input string to a float, or `NaN` if the input is not a float.
+**toInt(input [, radix])**             | convert the input string to an integer, or `NaN` if the input is not an integer.
+**trim(input [, chars])**              | trim characters (whitespace by default) from both sides of the input.
+**unescape(input)**                    | replace HTML encoded entities with `<`, `>`, `&`, `'`, `"` and `/`.
+**whitelist(input, chars)**            | remove characters that do not appear in the whitelist. The characters are used in a RegExp and so you will need to escape some chars, e.g. `whitelist(input, '\\[\\]')`.
 
-Any of `X`, `x`, or `*` may be used to "stand in" for one of the
-numeric values in the `[major, minor, patch]` tuple.
+### XSS Sanitization
 
-* `*` := `>=0.0.0` (Any non-prerelease version satisfies, unless
-  `includePrerelease` is specified, in which case any version at all
-  satisfies)
-* `1.x` := `>=1.0.0 <2.0.0-0` (Matching major version)
-* `1.2.x` := `>=1.2.0 <1.3.0-0` (Matching major and minor versions)
+XSS sanitization was removed from the library in [2d5d6999](https://github.com/validatorjs/validator.js/commit/2d5d6999541add350fb396ef02dc42ca3215049e).
 
-A partial version range is treated as an X-Range, so the special
-character is in fact optional.
+For an alternative, have a look at Yahoo's [xss-filters library](https://github.com/yahoo/xss-filters) or at [DOMPurify](https://github.com/cure53/DOMPurify).
 
-* `""` (empty string) := `*` := `>=0.0.0`
-* `1` := `1.x.x` := `>=1.0.0 <2.0.0-0`
-* `1.2` := `1.2.x` := `>=1.2.0 <1.3.0-0`
+## Contributing
 
-#### Tilde Ranges `~1.2.3` `~1.2` `~1`
+In general, we follow the "fork-and-pull" Git workflow.
 
-Allows patch-level changes if a minor version is specified on the
-comparator.  Allows minor-level changes if not.
+1. Fork the repo on GitHub
+2. Clone the project to your own machine
+3. Work on your fork
+    1. Make your changes and additions
+        - Most of your changes should be focused on `src/` and `test/` folders and/or `README.md`.
+        - Files such as `validator.js`, `validator.min.js` and files in `lib/` folder are autogenerated when running tests (`npm test`) and need not to be changed **manually**.
+    2. Change or add tests if needed
+    3. Run tests and make sure they pass
+    4. Add changes to README.md if needed
+4. Commit changes to your own branch
+5. **Make sure** you merge the latest from "upstream" and resolve conflicts if there is any
+6. Repeat step 3(3) above
+7. Push your work back up to your fork
+8. Submit a Pull request so that we can review your changes
 
-* `~1.2.3` := `>=1.2.3 <1.(2+1).0` := `>=1.2.3 <1.3.0-0`
-* `~1.2` := `>=1.2.0 <1.(2+1).0` := `>=1.2.0 <1.3.0-0` (Same as `1.2.x`)
-* `~1` := `>=1.0.0 <(1+1).0.0` := `>=1.0.0 <2.0.0-0` (Same as `1.x`)
-* `~0.2.3` := `>=0.2.3 <0.(2+1).0` := `>=0.2.3 <0.3.0-0`
-* `~0.2` := `>=0.2.0 <0.(2+1).0` := `>=0.2.0 <0.3.0-0` (Same as `0.2.x`)
-* `~0` := `>=0.0.0 <(0+1).0.0` := `>=0.0.0 <1.0.0-0` (Same as `0.x`)
-* `~1.2.3-beta.2` := `>=1.2.3-beta.2 <1.3.0-0` Note that prereleases in
-  the `1.2.3` version will be allowed, if they are greater than or
-  equal to `beta.2`.  So, `1.2.3-beta.4` would be allowed, but
-  `1.2.4-beta.2` would not, because it is a prerelease of a
-  different `[major, minor, patch]` tuple.
+## Tests
 
-#### Caret Ranges `^1.2.3` `^0.2.5` `^0.0.4`
+Tests are using mocha, to run the tests use:
 
-Allows changes that do not modify the left-most non-zero element in the
-`[major, minor, patch]` tuple.  In other words, this allows patch and
-minor updates for versions `1.0.0` and above, patch updates for
-versions `0.X >=0.1.0`, and *no* updates for versions `0.0.X`.
-
-Many authors treat a `0.x` version as if the `x` were the major
-"breaking-change" indicator.
-
-Caret ranges are ideal when an author may make breaking changes
-between `0.2.4` and `0.3.0` releases, which is a common practice.
-However, it presumes that there will *not* be breaking changes between
-`0.2.4` and `0.2.5`.  It allows for changes that are presumed to be
-additive (but non-breaking), according to commonly observed practices.
-
-* `^1.2.3` := `>=1.2.3 <2.0.0-0`
-* `^0.2.3` := `>=0.2.3 <0.3.0-0`
-* `^0.0.3` := `>=0.0.3 <0.0.4-0`
-* `^1.2.3-beta.2` := `>=1.2.3-beta.2 <2.0.0-0` Note that prereleases in
-  the `1.2.3` version will be allowed, if they are greater than or
-  equal to `beta.2`.  So, `1.2.3-beta.4` would be allowed, but
-  `1.2.4-beta.2` would not, because it is a prerelease of a
-  different `[major, minor, patch]` tuple.
-* `^0.0.3-beta` := `>=0.0.3-beta <0.0.4-0`  Note that prereleases in the
-  `0.0.3` version *only* will be allowed, if they are greater than or
-  equal to `beta`.  So, `0.0.3-pr.2` would be allowed.
-
-When parsing caret ranges, a missing `patch` value desugars to the
-number `0`, but will allow flexibility within that value, even if the
-major and minor versions are both `0`.
-
-* `^1.2.x` := `>=1.2.0 <2.0.0-0`
-* `^0.0.x` := `>=0.0.0 <0.1.0-0`
-* `^0.0` := `>=0.0.0 <0.1.0-0`
-
-A missing `minor` and `patch` values will desugar to zero, but also
-allow flexibility within those values, even if the major version is
-zero.
-
-* `^1.x` := `>=1.0.0 <2.0.0-0`
-* `^0.x` := `>=0.0.0 <1.0.0-0`
-
-### Range Grammar
-
-Putting all this together, here is a Backus-Naur grammar for ranges,
-for the benefit of parser authors:
-
-```bnf
-range-set  ::= range ( logical-or range ) *
-logical-or ::= ( ' ' ) * '||' ( ' ' ) *
-range      ::= hyphen | simple ( ' ' simple ) * | ''
-hyphen     ::= partial ' - ' partial
-simple     ::= primitive | partial | tilde | caret
-primitive  ::= ( '<' | '>' | '>=' | '<=' | '=' ) partial
-partial    ::= xr ( '.' xr ( '.' xr qualifier ? )? )?
-xr         ::= 'x' | 'X' | '*' | nr
-nr         ::= '0' | ['1'-'9'] ( ['0'-'9'] ) *
-tilde      ::= '~' partial
-caret      ::= '^' partial
-qualifier  ::= ( '-' pre )? ( '+' build )?
-pre        ::= parts
-build      ::= parts
-parts      ::= part ( '.' part ) *
-part       ::= nr | [-0-9A-Za-z]+
+```sh
+$ npm test
 ```
 
-## Functions
+## Maintainers
 
-All methods and classes take a final `options` object argument.  All
-options in this object are `false` by default.  The options supported
-are:
+- [chriso](https://github.com/chriso) - **Chris O'Hara** (author)
+- [profnandaa](https://github.com/profnandaa) - **Anthony Nandaa**
+- [ezkemboi](https://github.com/ezkemboi) - **Ezrqn Kemboi**
+- [tux-tn](https://github.com/tux-tn) - **Sarhan Aissi**
 
-- `loose`  Be more forgiving about not-quite-valid semver strings.
-  (Any resulting output will always be 100% strict compliant, of
-  course.)  For backwards compatibility reasons, if the `options`
-  argument is a boolean value instead of an object, it is interpreted
-  to be the `loose` param.
-- `includePrerelease`  Set to suppress the [default
-  behavior](https://github.com/npm/node-semver#prerelease-tags) of
-  excluding prerelease tagged versions from ranges unless they are
-  explicitly opted into.
+## Reading
 
-Strict-mode Comparators and Ranges will be strict about the SemVer
-strings that they parse.
+Remember, validating can be troublesome sometimes. See [A list of articles about programming assumptions commonly made that aren't true](https://github.com/jameslk/awesome-falsehoods).
 
-* `valid(v)`: Return the parsed version, or null if it's not valid.
-* `inc(v, release)`: Return the version incremented by the release
-  type (`major`,   `premajor`, `minor`, `preminor`, `patch`,
-  `prepatch`, or `prerelease`), or null if it's not valid
-  * `premajor` in one call will bump the version up to the next major
-    version and down to a prerelease of that major version.
-    `preminor`, and `prepatch` work the same way.
-  * If called from a non-prerelease version, the `prerelease` will work the
-    same as `prepatch`. It increments the patch version, then makes a
-    prerelease. If the input version is already a prerelease it simply
-    increments it.
-* `prerelease(v)`: Returns an array of prerelease components, or null
-  if none exist. Example: `prerelease('1.2.3-alpha.1') -> ['alpha', 1]`
-* `major(v)`: Return the major version number.
-* `minor(v)`: Return the minor version number.
-* `patch(v)`: Return the patch version number.
-* `intersects(r1, r2, loose)`: Return true if the two supplied ranges
-  or comparators intersect.
-* `parse(v)`: Attempt to parse a string as a semantic version, returning either
-  a `SemVer` object or `null`.
-
-### Comparison
-
-* `gt(v1, v2)`: `v1 > v2`
-* `gte(v1, v2)`: `v1 >= v2`
-* `lt(v1, v2)`: `v1 < v2`
-* `lte(v1, v2)`: `v1 <= v2`
-* `eq(v1, v2)`: `v1 == v2` This is true if they're logically equivalent,
-  even if they're not the exact same string.  You already know how to
-  compare strings.
-* `neq(v1, v2)`: `v1 != v2` The opposite of `eq`.
-* `cmp(v1, comparator, v2)`: Pass in a comparison string, and it'll call
-  the corresponding function above.  `"==="` and `"!=="` do simple
-  string comparison, but are included for completeness.  Throws if an
-  invalid comparison string is provided.
-* `compare(v1, v2)`: Return `0` if `v1 == v2`, or `1` if `v1` is greater, or `-1` if
-  `v2` is greater.  Sorts in ascending order if passed to `Array.sort()`.
-* `rcompare(v1, v2)`: The reverse of compare.  Sorts an array of versions
-  in descending order when passed to `Array.sort()`.
-* `compareBuild(v1, v2)`: The same as `compare` but considers `build` when two versions
-  are equal.  Sorts in ascending order if passed to `Array.sort()`.
-  `v2` is greater.  Sorts in ascending order if passed to `Array.sort()`.
-* `diff(v1, v2)`: Returns difference between two versions by the release type
-  (`major`, `premajor`, `minor`, `preminor`, `patch`, `prepatch`, or `prerelease`),
-  or null if the versions are the same.
-
-### Comparators
-
-* `intersects(comparator)`: Return true if the comparators intersect
-
-### Ranges
-
-* `validRange(range)`: Return the valid range or null if it's not valid
-* `satisfies(version, range)`: Return true if the version satisfies the
-  range.
-* `maxSatisfying(versions, range)`: Return the highest version in the list
-  that satisfies the range, or `null` if none of them do.
-* `minSatisfying(versions, range)`: Return the lowest version in the list
-  that satisfies the range, or `null` if none of them do.
-* `minVersion(range)`: Return the lowest version that can possibly match
-  the given range.
-* `gtr(version, range)`: Return `true` if version is greater than all the
-  versions possible in the range.
-* `ltr(version, range)`: Return `true` if version is less than all the
-  versions possible in the range.
-* `outside(version, range, hilo)`: Return true if the version is outside
-  the bounds of the range in either the high or low direction.  The
-  `hilo` argument must be either the string `'>'` or `'<'`.  (This is
-  the function called by `gtr` and `ltr`.)
-* `intersects(range)`: Return true if any of the ranges comparators intersect
-* `simplifyRange(versions, range)`: Return a "simplified" range that
-  matches the same items in `versions` list as the range specified.  Note
-  that it does *not* guarantee that it would match the same versions in all
-  cases, only for the set of versions provided.  This is useful when
-  generating ranges by joining together multiple versions with `||`
-  programmatically, to provide the user with something a bit more
-  ergonomic.  If the provided range is shorter in string-length than the
-  generated range, then that is returned.
-* `subset(subRange, superRange)`: Return `true` if the `subRange` range is
-  entirely contained by the `superRange` range.
-
-Note that, since ranges may be non-contiguous, a version might not be
-greater than a range, less than a range, *or* satisfy a range!  For
-example, the range `1.2 <1.2.9 || >2.0.0` would have a hole from `1.2.9`
-until `2.0.0`, so the version `1.2.10` would not be greater than the
-range (because `2.0.1` satisfies, which is higher), nor less than the
-range (since `1.2.8` satisfies, which is lower), and it also does not
-satisfy the range.
-
-If you want to know if a version satisfies or does not satisfy a
-range, use the `satisfies(version, range)` function.
-
-### Coercion
-
-* `coerce(version, options)`: Coerces a string to semver if possible
-
-This aims to provide a very forgiving translation of a non-semver string to
-semver. It looks for the first digit in a string, and consumes all
-remaining characters which satisfy at least a partial semver (e.g., `1`,
-`1.2`, `1.2.3`) up to the max permitted length (256 characters).  Longer
-versions are simply truncated (`4.6.3.9.2-alpha2` becomes `4.6.3`).  All
-surrounding text is simply ignored (`v3.4 replaces v3.3.1` becomes
-`3.4.0`).  Only text which lacks digits will fail coercion (`version one`
-is not valid).  The maximum  length for any semver component considered for
-coercion is 16 characters; longer components will be ignored
-(`10000000000000000.4.7.4` becomes `4.7.4`).  The maximum value for any
-semver component is `Number.MAX_SAFE_INTEGER || (2**53 - 1)`; higher value
-components are invalid (`9999999999999999.4.7.4` is likely invalid).
-
-If the `options.rtl` flag is set, then `coerce` will return the right-most
-coercible tuple that does not share an ending index with a longer coercible
-tuple.  For example, `1.2.3.4` will return `2.3.4` in rtl mode, not
-`4.0.0`.  `1.2.3/4` will return `4.0.0`, because the `4` is not a part of
-any other overlapping SemVer tuple.
-
-If the `options.includePrerelease` flag is set, then the `coerce` result will contain
-prerelease and build parts of a version.  For example, `1.2.3.4-rc.1+rev.2`
-will preserve prerelease `rc.1` and build `rev.2` in the result.
-
-### Clean
-
-* `clean(version)`: Clean a string to be a valid semver if possible
-
-This will return a cleaned and trimmed semver version. If the provided
-version is not valid a null will be returned. This does not work for
-ranges.
-
-ex.
-* `s.clean(' = v 2.1.5foo')`: `null`
-* `s.clean(' = v 2.1.5foo', { loose: true })`: `'2.1.5-foo'`
-* `s.clean(' = v 2.1.5-foo')`: `null`
-* `s.clean(' = v 2.1.5-foo', { loose: true })`: `'2.1.5-foo'`
-* `s.clean('=v2.1.5')`: `'2.1.5'`
-* `s.clean('  =v2.1.5')`: `'2.1.5'`
-* `s.clean('      2.1.5   ')`: `'2.1.5'`
-* `s.clean('~1.0.0')`: `null`
-
-## Constants
-
-As a convenience, helper constants are exported to provide information about what `node-semver` supports:
-
-### `RELEASE_TYPES`
-
-- major
-- premajor
-- minor
-- preminor
-- patch
-- prepatch
-- prerelease
+## License (MIT)
 
 ```
-const semver = require('semver');
+Copyright (c) 2018 Chris O'Hara <cohara87@gmail.com>
 
-if (semver.RELEASE_TYPES.includes(arbitraryUserInput)) {
-  console.log('This is a valid release type!');
-} else {
-  console.warn('This is NOT a valid release type!');
-}
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
-### `SEMVER_SPEC_VERSION`
+[downloads-image]: http://img.shields.io/npm/dm/validator.svg
 
-2.0.0
+[npm-url]: https://npmjs.org/package/validator
+[npm-image]: http://img.shields.io/npm/v/validator.svg
 
-```
-const semver = require('semver');
+[codecov-url]: https://codecov.io/gh/validatorjs/validator.js
+[codecov-image]: https://codecov.io/gh/validatorjs/validator.js/branch/master/graph/badge.svg
 
-console.log('We are currently using the semver specification version:', semver.SEMVER_SPEC_VERSION);
-```
+[ci-url]: https://github.com/validatorjs/validator.js/actions?query=workflow%3ACI
+[ci-image]: https://github.com/validatorjs/validator.js/workflows/CI/badge.svg?branch=master
 
-## Exported Modules
+[gitter-url]: https://gitter.im/validatorjs/community
+[gitter-image]: https://badges.gitter.im/validatorjs/community.svg
 
-<!--
-TODO: Make sure that all of these items are documented (classes aren't,
-eg), and then pull the module name into the documentation for that specific
-thing.
--->
+[huntr-url]: https://huntr.dev/bounties/disclose/?target=https://github.com/validatorjs/validator.js
+[huntr-image]: https://cdn.huntr.dev/huntr_security_badge_mono.svg
 
-You may pull in just the part of this semver utility that you need, if you
-are sensitive to packing and tree-shaking concerns.  The main
-`require('semver')` export uses getter functions to lazily load the parts
-of the API that are used.
+[amd]: http://requirejs.org/docs/whyamd.html
+[bower]: http://bower.io/
 
-The following modules are available:
-
-* `require('semver')`
-* `require('semver/classes')`
-* `require('semver/classes/comparator')`
-* `require('semver/classes/range')`
-* `require('semver/classes/semver')`
-* `require('semver/functions/clean')`
-* `require('semver/functions/cmp')`
-* `require('semver/functions/coerce')`
-* `require('semver/functions/compare')`
-* `require('semver/functions/compare-build')`
-* `require('semver/functions/compare-loose')`
-* `require('semver/functions/diff')`
-* `require('semver/functions/eq')`
-* `require('semver/functions/gt')`
-* `require('semver/functions/gte')`
-* `require('semver/functions/inc')`
-* `require('semver/functions/lt')`
-* `require('semver/functions/lte')`
-* `require('semver/functions/major')`
-* `require('semver/functions/minor')`
-* `require('semver/functions/neq')`
-* `require('semver/functions/parse')`
-* `require('semver/functions/patch')`
-* `require('semver/functions/prerelease')`
-* `require('semver/functions/rcompare')`
-* `require('semver/functions/rsort')`
-* `require('semver/functions/satisfies')`
-* `require('semver/functions/sort')`
-* `require('semver/functions/valid')`
-* `require('semver/ranges/gtr')`
-* `require('semver/ranges/intersects')`
-* `require('semver/ranges/ltr')`
-* `require('semver/ranges/max-satisfying')`
-* `require('semver/ranges/min-satisfying')`
-* `require('semver/ranges/min-version')`
-* `require('semver/ranges/outside')`
-* `require('semver/ranges/to-comparators')`
-* `require('semver/ranges/valid')`
-
+[Crockford Base32]: http://www.crockford.com/base32.html
+[Base64 URL Safe]: https://base64.guru/standards/base64url
+[Data URI Format]: https://developer.mozilla.org/en-US/docs/Web/HTTP/data_URIs
+[European Article Number]: https://en.wikipedia.org/wiki/International_Article_Number
+[Ethereum]: https://ethereum.org/
+[CSS Colors Level 4 Specification]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
+[IMEI]: https://en.wikipedia.org/wiki/International_Mobile_Equipment_Identity
+[ISBN]: https://en.wikipedia.org/wiki/ISBN
+[ISIN]: https://en.wikipedia.org/wiki/International_Securities_Identification_Number
+[ISO 639-1]: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+[ISO 8601]: https://en.wikipedia.org/wiki/ISO_8601
+[ISO 3166-1 alpha-2]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+[ISO 3166-1 alpha-3]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3
+[ISO 4217]: https://en.wikipedia.org/wiki/ISO_4217
+[ISRC]: https://en.wikipedia.org/wiki/International_Standard_Recording_Code
+[ISSN]: https://en.wikipedia.org/wiki/International_Standard_Serial_Number
+[Luhn Check]: https://en.wikipedia.org/wiki/Luhn_algorithm
+[Magnet URI Format]: https://en.wikipedia.org/wiki/Magnet_URI_scheme
+[Mailto URI Format]: https://en.wikipedia.org/wiki/Mailto
+[MIME Type]: https://en.wikipedia.org/wiki/Media_type
+[mongoid]: http://docs.mongodb.org/manual/reference/object-id/
+[RFC 3339]: https://tools.ietf.org/html/rfc3339
+[VAT Number]: https://en.wikipedia.org/wiki/VAT_identification_number
