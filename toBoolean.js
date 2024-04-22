@@ -1,16 +1,6 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = toBoolean;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function toBoolean(str, strict) {
-  (0, _assertString.default)(str);
+import assertString from './util/assertString';
+export default function toBoolean(str, strict) {
+  assertString(str);
 
   if (strict) {
     return str === '1' || /^true$/i.test(str);
@@ -18,6 +8,3 @@ function toBoolean(str, strict) {
 
   return str !== '0' && !/^false$/i.test(str) && str !== '';
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

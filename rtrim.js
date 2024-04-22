@@ -1,16 +1,6 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = rtrim;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function rtrim(str, chars) {
-  (0, _assertString.default)(str);
+import assertString from './util/assertString';
+export default function rtrim(str, chars) {
+  assertString(str);
 
   if (chars) {
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
@@ -27,6 +17,3 @@ function rtrim(str, chars) {
 
   return str.slice(0, strIndex + 1);
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;
