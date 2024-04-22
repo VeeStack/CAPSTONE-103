@@ -1,15 +1,5 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isCurrency;
-
-var _merge = _interopRequireDefault(require("./util/merge"));
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+import merge from './util/merge';
+import assertString from './util/assertString';
 
 function currencyRegex(options) {
   var decimal_digits = "\\d{".concat(options.digits_after_decimal[0], "}");
@@ -80,12 +70,8 @@ var default_currency_options = {
   digits_after_decimal: [2],
   allow_space_after_digits: false
 };
-
-function isCurrency(str, options) {
-  (0, _assertString.default)(str);
-  options = (0, _merge.default)(options, default_currency_options);
+export default function isCurrency(str, options) {
+  assertString(str);
+  options = merge(options, default_currency_options);
   return currencyRegex(options).test(str);
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

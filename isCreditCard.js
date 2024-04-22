@@ -1,16 +1,5 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isCreditCard;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-var _isLuhnNumber = _interopRequireDefault(require("./isLuhnNumber"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import assertString from './util/assertString';
+import isLuhnValid from './isLuhnNumber';
 var cards = {
   amex: /^3[47][0-9]{13}$/,
   dinersclub: /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/,
@@ -35,9 +24,9 @@ var allCards = function () {
   return tmpCardsArray;
 }();
 
-function isCreditCard(card) {
+export default function isCreditCard(card) {
   var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  (0, _assertString.default)(card);
+  assertString(card);
   var provider = options.provider;
   var sanitized = card.replace(/[- ]+/g, '');
 
@@ -56,8 +45,5 @@ function isCreditCard(card) {
     return false;
   }
 
-  return (0, _isLuhnNumber.default)(card);
+  return isLuhnValid(card);
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;

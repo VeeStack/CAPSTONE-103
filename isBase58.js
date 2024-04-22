@@ -1,19 +1,8 @@
-"use strict";
+import assertString from './util/assertString'; // Accepted chars - 123456789ABCDEFGH JKLMN PQRSTUVWXYZabcdefghijk mnopqrstuvwxyz
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isBase58;
-
-var _assertString = _interopRequireDefault(require("./util/assertString"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// Accepted chars - 123456789ABCDEFGH JKLMN PQRSTUVWXYZabcdefghijk mnopqrstuvwxyz
 var base58Reg = /^[A-HJ-NP-Za-km-z1-9]*$/;
-
-function isBase58(str) {
-  (0, _assertString.default)(str);
+export default function isBase58(str) {
+  assertString(str);
 
   if (base58Reg.test(str)) {
     return true;
@@ -21,6 +10,3 @@ function isBase58(str) {
 
   return false;
 }
-
-module.exports = exports.default;
-module.exports.default = exports.default;
